@@ -1,0 +1,115 @@
+# Secret Shield PL — gitleaks config
+# https://github.com/gitleaks/gitleaks
+#
+# Rozszerza wbudowane reguły gitleaks o wzorce specyficzne dla polskich realiów:
+# PESEL, NIP, REGON, numery kont bankowych (IBAN PL).
+#
+# Zachowanie: blokuje wysłanie kodu na GitHub jeśli wykryto sekret.
+
+title = "Secret Shield PL"
+
+[extend]
+useDefault = true
+
+# === Polskie identyfikatory osobowe i firmowe ===
+
+[[rules]]
+id = "polish-pesel"
+description = "Polski numer PESEL (11 cyfr) — dane wrażliwe RODO"
+regex = '''(?i)pesel[\s:=\"_-]{0,5}["']?(\d{11})\b'''
+keywords = ["pesel"]
+
+# === Klucze AI/LLM (uzupełnienie wbudowanych reguł) ===
+# Wbudowane reguły gitleaks wymagają specyficznych substringów (np. "T3BlbkFJ")
+# i mogą nie wykryć testowych/przykładowych formatów. Te reguły są mniej ścisłe
+# ale skuteczniejsze dla codziennej ochrony.
+
+[[rules]]
+id = "openai-proj-key"
+description = "Klucz OpenAI Projects (sk-proj-...)"
+regex = '''sk-proj-[A-Za-z0-9_-]{40,}'''
+keywords = ["sk-proj-"]
+
+[[rules]]
+id = "openai-legacy-key"
+description = "Klucz OpenAI legacy (sk-...) bez kontekstu"
+regex = '''sk-[A-Za-z0-9]{40,}'''
+keywords = ["sk-"]
+
+[[rules]]
+id = "anthropic-key"
+description = "Klucz Anthropic (sk-ant-...)"
+regex = '''sk-ant-(?:api\d{2}-)?[A-Za-z0-9_-]{40,}'''
+keywords = ["sk-ant"]
+
+[[rules]]
+id = "supabase-service-role"
+description = "Klucz service_role Supabase (JWT z claim service_role)"
+regex = '''eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]*c2VydmljZV9yb2xl[A-Za-z0-9_-]*\.[A-Za-z0-9_-]{20,}'''
+keywords = ["service_role"]
+
+[[rules]]
+id = "elevenlabs-key"
+description = "Klucz ElevenLabs API (xi-api-key, format hex)"
+regex = '''(?i)(?:xi[_-]?api[_-]?key|elevenlabs[_-]?api[_-]?key)[\s:=\"'_-]{1,5}["']?([a-f0-9]{32,})'''
+keywords = ["xi-api-key", "elevenlabs"]
+
+[[rules]]
+id = "polish-nip-formatted"
+description = "Polski NIP w formacie XXX-XXX-XX-XX"
+regex = '''\b\d{3}-\d{3}-\d{2}-\d{2}\b'''
+keywords = ["nip"]
+
+[[rules]]
+id = "polish-nip-context"
+description = "Polski NIP (10 cyfr) z kontekstem słowa kluczowego"
+regex = '''(?i)\bnip[\s:=\"'_-]{1,5}(\d{10})\b'''
+keywords = ["nip"]
+
+[[rules]]
+id = "polish-regon-context"
+description = "Polski REGON (9 lub 14 cyfr) z kontekstem"
+regex = '''(?i)\bregon[\s:=\"'_-]{1,5}(\d{9}|\d{14})\b'''
+keywords = ["regon"]
+
+[[rules]]
+id = "polish-iban-prefixed"
+description = "Polski numer konta bankowego (IBAN PL)"
+regex = '''\bPL\d{2}[\s-]?(?:\d{4}[\s-]?){5}\d{4}\b'''
+keywords = ["PL"]
+
+[[rules]]
+id = "polish-iban-no-prefix"
+description = "Polski numer konta bez prefiksu PL (26 cyfr w grupach)"
+regex = '''\b\d{2}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}\b'''
+
+# === Allowlist (wykluczenia) ===
+
+[allowlist]
+description = "Pliki i ścieżki ignorowane przy skanowaniu"
+paths = [
+  '''(.*?)(jpg|jpeg|png|gif|pdf|zip|woff2?|svg|map|lock)$''',
+  '''.*\.min\.js$''',
+  '''node_modules/''',
+  '''\.next/''',
+  '''dist/''',
+  '''build/''',
+  '''\.gitleaks\.toml$''',
+  '''docs/.*examples?''',
+]
+
+# Wzorce literalne wykluczane (np. testowe/dummy klucze w fixturach)
+regexes = [
+  '''AKIAIOSFODNN7EXAMPLE''',
+  '''sk-test-''',
+  '''sk-dummy''',
+  '''(?i)example.*key''',
+  '''(?i)fake.*token''',
+]
+
+stopwords = [
+  "example",
+  "fixture",
+  "dummy",
+  "placeholder",
+]

@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Secret Shield PL — pre-push hook
+# Skanuje commity które idą na remote, zanim trafią na GitHub.
+# Blokuje push jeśli wykryto sekret.
+
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+CONFIG="$REPO_ROOT/.gitleaks.toml"
+
+if ! command -v gitleaks &> /dev/null; then
+  echo "⚠️  Secret Shield: gitleaks nie zainstalowany. Pomijam skan."
+  echo "   Aby aktywować ochronę: brew install gitleaks"
+  exit 0
+fi
+
+if [ ! -f "$CONFIG" ]; then
+  echo "⚠️  Secret Shield: brak .gitleaks.toml w repo. Pomijam skan."
+  exit 0
+fi
+
+echo "🛡️  Secret Shield: skanuję commity przed wysłaniem na GitHub..."
+
+# stdin format pre-push: <local_ref> <local_sha> <remote_ref> <remote_sha>
+LEAK_FOUND=0
+
+while read local_ref local_sha remote_ref remote_sha; do
+  # Branch deletion — pomijaj
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+
+  # Nowy branch (remote nie istnieje) — skanuj wszystko od początku brancha
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    range="$local_sha"
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  if ! gitleaks git "$REPO_ROOT" \
+    --config="$CONFIG" \
+    --log-opts="$range" \
+    --no-banner \
+    --redact \
+    --exit-code 1 2>&1; then
+    LEAK_FOUND=1
+  fi
+done
+
+if [ "$LEAK_FOUND" = "1" ]; then
+  echo ""
+  echo "🚫 Secret Shield zablokował wysłanie."
+  echo ""
+  echo "   Co dalej:"
+  echo "   1. Sprawdź który plik i linia (raport powyżej)"
+  echo "   2. Usuń sekret z kodu (zastąp wczytywaniem z .env)"
+  echo "   3. Jeśli sekret był wcześniej commitowany — przepisz historię"
+  echo "      (git rebase -i albo BFG Repo-Cleaner)"
+  echo "   4. ZROTUJ KLUCZ jeśli mógł trafić publicznie"
+  echo ""
+  echo "   Jeśli to fałszywy alarm (np. example/fixture):"
+  echo "   dodaj wzorzec do allowlist w .gitleaks.toml"
+  echo ""
+  exit 1
+fi
+
+echo "✅ Secret Shield: czysto, wysyłam."
+exit 0
