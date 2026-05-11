@@ -51,8 +51,11 @@ brew install gitleaks
 Z roota Twojego projektu (czyli z katalogu w którym jest folder `.git`):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/DariuszCiesielski/secret-shield-pl/main/install.sh | bash
+curl -fsSL https://cdn.jsdelivr.net/gh/DariuszCiesielski/secret-shield-pl@main/install.sh | bash
 ```
+
+> Alternatywnie (bezpośrednio z GitHub raw — wolniejsza propagacja CDN, do ~5 min cache TTL):  
+> `curl -fsSL https://raw.githubusercontent.com/DariuszCiesielski/secret-shield-pl/main/install.sh | bash`
 
 Instalator:
 - Pobiera `.gitleaks.toml` (konfigurację) do roota repo
@@ -149,7 +152,7 @@ Secret Shield skanuje **kod w commitach** — tam gdzie `.gitignore` już Cię n
 To jest **snapshot v1.0** — opublikowany w maju 2026. Świat sekretów się zmienia (nowe usługi, nowe formaty kluczy), więc okresowo (co ~pół roku) odśwież sobie konfigurację:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/DariuszCiesielski/secret-shield-pl/main/.gitleaks.toml -o .gitleaks.toml
+curl -fsSL https://cdn.jsdelivr.net/gh/DariuszCiesielski/secret-shield-pl@main/.gitleaks.toml -o .gitleaks.toml
 ```
 
 Plus po większych zmianach zobacz [CHANGELOG.md](CHANGELOG.md).

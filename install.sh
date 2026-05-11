@@ -10,9 +10,9 @@
 
 set -e
 
-REPO_RAW="https://raw.githubusercontent.com/DariuszCiesielski/secret-shield-pl/main"
-CONFIG_URL="$REPO_RAW/.gitleaks.toml"
-HOOK_URL="$REPO_RAW/hooks/pre-push"
+REPO_CDN="https://cdn.jsdelivr.net/gh/DariuszCiesielski/secret-shield-pl@main"
+CONFIG_URL="$REPO_CDN/.gitleaks.toml"
+HOOK_URL="$REPO_CDN/hooks/pre-push"
 
 # === 1. Sprawdzenia środowiska ===
 
