@@ -3,10 +3,13 @@
 # https://github.com/DariuszCiesielski/secret-shield-pl
 #
 # Użycie (z roota dowolnego repo git):
-#   curl -fsSL https://raw.githubusercontent.com/DariuszCiesielski/secret-shield-pl/main/install.sh | bash
+#   bash <(curl -fsSL https://cdn.jsdelivr.net/gh/DariuszCiesielski/secret-shield-pl@main/install.sh)
 #
-# Lub po pobraniu lokalnym:
-#   bash install.sh
+# Alternatywa (save + run, dla CI bez process substitution):
+#   curl -fsSL https://cdn.jsdelivr.net/gh/DariuszCiesielski/secret-shield-pl@main/install.sh -o /tmp/sspl-install.sh
+#   bash /tmp/sspl-install.sh && rm /tmp/sspl-install.sh
+#
+# UWAGA: NIE używaj `curl | bash` — macOS bash 3.2 ma buggy pipe reading.
 
 set -e
 

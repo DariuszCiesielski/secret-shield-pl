@@ -51,11 +51,18 @@ brew install gitleaks
 Z roota Twojego projektu (czyli z katalogu w którym jest folder `.git`):
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/DariuszCiesielski/secret-shield-pl@main/install.sh | bash
+bash <(curl -fsSL https://cdn.jsdelivr.net/gh/DariuszCiesielski/secret-shield-pl@main/install.sh)
 ```
 
-> Alternatywnie (bezpośrednio z GitHub raw — wolniejsza propagacja CDN, do ~5 min cache TTL):  
-> `curl -fsSL https://raw.githubusercontent.com/DariuszCiesielski/secret-shield-pl/main/install.sh | bash`
+> **Dlaczego nie `curl | bash`?** macOS ma starego bash 3.2 z buggy stdin pipe reading — `curl | bash` daje `syntax error`. Metoda powyżej (`bash <(curl ...)`) działa wszędzie.
+
+Alternatywnie — save + run (gdy w środowisku brak process substitution, np. niektóre CI):
+
+```bash
+curl -fsSL https://cdn.jsdelivr.net/gh/DariuszCiesielski/secret-shield-pl@main/install.sh -o /tmp/secret-shield-install.sh
+bash /tmp/secret-shield-install.sh
+rm /tmp/secret-shield-install.sh
+```
 
 Instalator:
 - Pobiera `.gitleaks.toml` (konfigurację) do roota repo
