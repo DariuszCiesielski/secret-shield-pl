@@ -29,56 +29,29 @@ echo "🛡️  Secret Shield PL — instalator"
 echo "   Repo: $REPO_ROOT"
 echo ""
 
-# Tryb pracy: interaktywny (tty) lub nie (curl | bash, CI)
-if [ -t 0 ]; then
-  INTERACTIVE=1
-else
-  INTERACTIVE=0
-fi
-
-ask() {
-  # ask "pytanie" "default_T_lub_N"
-  local q="$1"
-  local def="${2:-N}"
-  if [ "$INTERACTIVE" = "0" ]; then
-    echo "   [non-interactive] domyślnie: $def"
-    [ "$def" = "T" ]
-    return $?
-  fi
-  read -r -p "$q " ans
-  if [ -z "$ans" ]; then
-    ans="$def"
-  fi
-  case "$ans" in
-    t|T|y|Y) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
 # === 2. Sprawdzenie gitleaks ===
 
 if ! command -v gitleaks &> /dev/null; then
-  echo "⚠️  gitleaks nie jest zainstalowany."
+  echo "ℹ️  gitleaks nie jest zainstalowany — hook zainstaluję, ale skan będzie pomijany."
+  echo "   Aby aktywować ochronę:"
+  echo "     macOS:   brew install gitleaks"
+  echo "     Linux:   https://github.com/gitleaks/gitleaks#installing"
+  echo "     Windows: scoop install gitleaks"
   echo ""
-  echo "   macOS:   brew install gitleaks"
-  echo "   Linux:   https://github.com/gitleaks/gitleaks#installing"
-  echo "   Windows: scoop install gitleaks  (lub https://github.com/gitleaks/gitleaks/releases)"
-  echo ""
-  if ! ask "Kontynuować mimo to? (hook pomija skan dopóki nie zainstalujesz) [t/N]" "N"; then
-    echo "Przerwano."
-    exit 0
-  fi
 fi
 
 # === 3. Konflikty — .gitleaks.toml ===
+# Domyślnie: NIE nadpisuj istniejącego configu (safe default).
+# Aby wymusić nadpisanie: SECRET_SHIELD_FORCE_CONFIG=1 curl ... | bash
 
 SKIP_CONFIG=0
 if [ -f ".gitleaks.toml" ]; then
-  echo "⚠️  W repo już jest .gitleaks.toml."
-  if ask "Nadpisać konfigiem Secret Shield PL? [t/N]" "N"; then
-    SKIP_CONFIG=0
+  if [ "${SECRET_SHIELD_FORCE_CONFIG:-0}" = "1" ]; then
+    cp .gitleaks.toml .gitleaks.toml.backup
+    echo "⚠️  Istnieje .gitleaks.toml — nadpisuję (backup: .gitleaks.toml.backup)"
   else
-    echo "ℹ️  Zachowuję istniejący .gitleaks.toml."
+    echo "ℹ️  Istnieje .gitleaks.toml — zachowuję. Aby nadpisać:"
+    echo "   SECRET_SHIELD_FORCE_CONFIG=1 curl ... | bash"
     SKIP_CONFIG=1
   fi
 fi
